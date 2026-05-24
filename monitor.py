@@ -69,9 +69,61 @@ class SystemMonitor:
             print("ByteWatch system telemetry daemon stopped.")
 
     def get_latest_stats(self):
-        """Return a copy of the latest system stats in a thread-safe way."""
+        """Return a copy of the latest system stats in a thread-safe way. Refreshes live on serverless Vercel."""
+        import os
+        if os.environ.get("VERCEL") or os.environ.get("NOW_REGION"):
+            self._update_stats_live()
         with self.lock:
             return self.stats.copy()
+
+    def _update_stats_live(self):
+        """Synchronously pull stats once (designed for Serverless/Vercel environments)."""
+        try:
+            # Query CPU percent (without blocking using interval=None)
+            cpu_p = psutil.cpu_percent(interval=None)
+            
+            cpu_freq = 0.0
+            try:
+                freq_info = psutil.cpu_freq()
+                if freq_info:
+                    cpu_freq = freq_info.current
+            except Exception:
+                pass
+                
+            load_avg = [0.0, 0.0, 0.0]
+            if hasattr(psutil, "getloadavg"):
+                try:
+                    load_avg = list(psutil.getloadavg())
+                except Exception:
+                    pass
+            else:
+                load_avg = [round(cpu_p / 100.0 * self.stats["cpu_cores_logical"], 2), 0.0, 0.0]
+
+            mem = psutil.virtual_memory()
+            mem_p = mem.percent
+            mem_total = round(mem.total / (1024 ** 3), 2)
+            mem_used = round(mem.used / (1024 ** 3), 2)
+            mem_avail = round(mem.available / (1024 ** 3), 2)
+
+            # Write metrics history
+            log_metrics(cpu_p, mem_p)
+            
+            # Fetch processes list
+            processes_list = self._fetch_top_processes()
+
+            with self.lock:
+                self.stats.update({
+                    "cpu_percent": cpu_p,
+                    "cpu_frequency_mhz": round(cpu_freq, 1),
+                    "cpu_load_avg": load_avg,
+                    "memory_percent": mem_p,
+                    "memory_total_gb": mem_total,
+                    "memory_used_gb": mem_used,
+                    "memory_available_gb": mem_avail,
+                    "processes": processes_list
+                })
+        except Exception as e:
+            print(f"Error updating stats live: {e}")
 
     def _monitor_loop(self):
         """Daemon thread loop for gathering telemetry metrics."""

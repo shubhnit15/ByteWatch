@@ -14,11 +14,17 @@ async def lifespan(app: FastAPI):
     # Startup logic
     print("ByteWatch is initializing...")
     init_db()  # Initialize the SQLite database and metrics table
-    monitor.start()  # Start the background system telemetry thread
+    
+    # Only start background monitoring thread if NOT on serverless/Vercel
+    import os
+    if not (os.environ.get("VERCEL") or os.environ.get("NOW_REGION")):
+        monitor.start()  # Start the background system telemetry thread
+        
     yield
     # Shutdown logic
     print("ByteWatch is shutting down...")
-    monitor.stop()  # Cleanly stop the monitor background thread
+    if not (os.environ.get("VERCEL") or os.environ.get("NOW_REGION")):
+        monitor.stop()  # Cleanly stop the monitor background thread
 
 # Initialize FastAPI with the context manager lifespan
 app = FastAPI(title="ByteWatch", lifespan=lifespan)

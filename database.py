@@ -2,7 +2,11 @@ import sqlite3
 import os
 from datetime import datetime
 
-DATABASE_FILE = "bytewatch.db"
+# Use /tmp for writing SQLite DB on Vercel Serverless read-only environment
+if os.environ.get("VERCEL") or os.environ.get("NOW_REGION"):
+    DATABASE_FILE = "/tmp/bytewatch.db"
+else:
+    DATABASE_FILE = "bytewatch.db"
 
 def get_db_connection(db_path=DATABASE_FILE):
     """Establish connection to the SQLite database."""
