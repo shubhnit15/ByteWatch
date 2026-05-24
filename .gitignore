@@ -1,0 +1,27 @@
+# ByteWatch Gitignore
+
+# Local SQLite databases (holds local temporary history)
+*.db
+*.sqlite3
+
+# Python cache and bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Environments
+.venv/
+venv/
+ENV/
+env/
+
+# Editor specific configurations
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp

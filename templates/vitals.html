@@ -1,0 +1,132 @@
+<!-- CPU Metrics Card -->
+<section class="metric-card cpu-card {% if cpu_percent > 80 %}warning{% elif cpu_percent > 50 %}moderate{% endif %}">
+    <div class="card-header">
+        <div class="card-title-block">
+            <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="4" y="4" width="16" height="16" rx="2" />
+                <path d="M9 9h6v6H9z" />
+                <path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 15h3M1 9h3M1 15h3" />
+            </svg>
+            <h2>Processor Utility</h2>
+        </div>
+        <span class="live-tag">LIVE</span>
+    </div>
+    
+    <div class="card-body">
+        <div class="metric-hero">
+            <span class="metric-value">{{ "%.1f"|format(cpu_percent) }}</span>
+            <span class="metric-unit">%</span>
+        </div>
+        
+        <!-- Live linear progress bar -->
+        <div class="progress-bar-container">
+            <div class="progress-bar cpu-fill" style="width: {{ cpu_percent }}%;"></div>
+        </div>
+        
+        <div class="metric-details">
+            <div class="detail-row">
+                <span class="label">Clock Speed</span>
+                <span class="value">{{ cpu_frequency_mhz }} MHz</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">Logical / Physical Cores</span>
+                <span class="value">{{ cpu_cores_logical }} / {{ cpu_cores_physical }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">Load Average (Est.)</span>
+                <span class="value">{{ "%.2f"|format(cpu_load_avg[0]) }}</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Memory Metrics Card -->
+<section class="metric-card memory-card {% if memory_percent > 85 %}warning{% elif memory_percent > 65 %}moderate{% endif %}">
+    <div class="card-header">
+        <div class="card-title-block">
+            <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 19h12V5H6v14z" />
+                <path d="M10 5v14M14 5v14M6 9h12M6 15h12" />
+            </svg>
+            <h2>Physical Memory</h2>
+        </div>
+        <span class="live-tag">LIVE</span>
+    </div>
+    
+    <div class="card-body">
+        <div class="metric-hero">
+            <span class="metric-value">{{ "%.1f"|format(memory_percent) }}</span>
+            <span class="metric-unit">%</span>
+        </div>
+        
+        <!-- Live linear progress bar -->
+        <div class="progress-bar-container">
+            <div class="progress-bar memory-fill" style="width: {{ memory_percent }}%;"></div>
+        </div>
+        
+        <div class="metric-details">
+            <div class="detail-row">
+                <span class="label">Used Space</span>
+                <span class="value">{{ "%.2f"|format(memory_used_gb) }} GB</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">Available Space</span>
+                <span class="value">{{ "%.2f"|format(memory_available_gb) }} GB</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">Total Managed Capacity</span>
+                <span class="value">{{ "%.2f"|format(memory_total_gb) }} GB</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Top Active Processes Table Card -->
+<section class="process-card">
+    <div class="card-header">
+        <div class="card-title-block">
+            <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+            </svg>
+            <h2>Top Resource Processes <span class="header-count">(15 Peak Threads)</span></h2>
+        </div>
+        <div class="process-legend">
+            <span class="legend-item"><span class="dot active"></span> Active</span>
+        </div>
+    </div>
+    
+    <div class="table-container">
+        <table class="process-table">
+            <thead>
+                <tr>
+                    <th class="col-pid">PID</th>
+                    <th class="col-name">Process Name</th>
+                    <th class="col-user">User</th>
+                    <th class="col-mem text-right">Memory WSS (MB)</th>
+                    <th class="col-cpu text-right">CPU Thread %</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for proc in processes %}
+                <tr class="{% if proc.cpu_percent > 8.0 %}high-load{% elif proc.cpu_percent > 3.0 %}med-load{% endif %}">
+                    <td class="col-pid mono">{{ proc.pid }}</td>
+                    <td class="col-name bold">
+                        <span class="proc-name-text">{{ proc.name }}</span>
+                    </td>
+                    <td class="col-user truncate">{{ proc.username or "system" }}</td>
+                    <td class="col-mem text-right mono">{{ "%.1f"|format(proc.memory_mb) }} MB</td>
+                    <td class="col-cpu text-right mono bold">
+                        <span class="percentage-pill {% if proc.cpu_percent > 8.0 %}danger{% elif proc.cpu_percent > 3.0 %}warning{% endif %}">
+                            {{ "%.1f"|format(proc.cpu_percent) }}%
+                        </span>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="no-data">Scanning for active threads...</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>

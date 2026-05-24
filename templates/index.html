@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ByteWatch | Live Hardware Telemetry</title>
+    
+    <!-- Google Fonts for premium typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+    
+    <!-- Custom Vanilla Stylesheet -->
+    <link rel="stylesheet" href="/static/style.css">
+    
+    <!-- HTMX CDN integration -->
+    <script src="https://unpkg.com/htmx.org@1.9.12" integrity="sha384-ujb1lRIkbPfyy56scYbmyFyXVQqpOPOc5cEXy+8aFN9KQcKNRg5vM1DZswnuaO8A" crossorigin="anonymous"></script>
+</head>
+<body>
+    <script>
+        // Inject theme class immediately on load to prevent any flashing
+        if (localStorage.getItem('theme') === 'light') {
+            document.body.classList.add('light-theme');
+        }
+    </script>
+    <div class="dashboard-wrapper">
+        <!-- Top Navigation Bar -->
+        <header class="app-header">
+            <div class="logo-area">
+                <div class="pulse-indicator"></div>
+                <h1>ByteWatch<span class="logo-accent">.</span></h1>
+            </div>
+            
+            <div class="header-meta">
+                <!-- Premium theme toggle button -->
+                <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle Theme" onclick="toggleTheme()">
+                    <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="4" />
+                        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+                    </svg>
+                    <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+                    </svg>
+                </button>
+                <span class="telemetry-badge">Live System Telemetry</span>
+                <span class="refresh-indicator">
+                    Polls every 2s
+                </span>
+            </div>
+        </header>
+
+        <!-- Main Dashboard Workspace -->
+        <main class="dashboard-main">
+            <!-- HTMX Poll Container: Periodically calls /api/vitals and swaps inner HTML -->
+            <div id="vitals-container" 
+                 hx-get="/api/vitals" 
+                 hx-trigger="every 2s" 
+                 hx-swap="innerHTML"
+                 class="vitals-grid">
+                
+                <!-- Initial metrics rendered directly on first load (SEO/UX optimization) -->
+                {{ vitals_content | safe }}
+                
+            </div>
+        </main>
+
+        <!-- Bottom Footer -->
+        <footer class="app-footer">
+            <p>ByteWatch Telemetry Engine &bull; Powered by FastAPI, SQLite, and HTMX</p>
+        </footer>
+    </div>
+
+    <!-- Theme persistence handler -->
+    <script>
+        function toggleTheme() {
+            const body = document.body;
+            body.classList.toggle('light-theme');
+            if (body.classList.contains('light-theme')) {
+                localStorage.setItem('theme', 'light');
+            } else {
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+    </script>
+</body>
+</html>
