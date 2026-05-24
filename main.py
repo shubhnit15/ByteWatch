@@ -26,6 +26,9 @@ async def lifespan(app: FastAPI):
     if not (os.environ.get("VERCEL") or os.environ.get("NOW_REGION")):
         monitor.stop()  # Cleanly stop the monitor background thread
 
+# Initialize SQLite database immediately on module load (ensures Vercel serverless has tables ready)
+init_db()
+
 # Initialize FastAPI with the context manager lifespan
 app = FastAPI(title="ByteWatch", lifespan=lifespan)
 

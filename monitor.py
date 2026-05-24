@@ -79,8 +79,8 @@ class SystemMonitor:
     def _update_stats_live(self):
         """Synchronously pull stats once (designed for Serverless/Vercel environments)."""
         try:
-            # Query CPU percent (without blocking using interval=None)
-            cpu_p = psutil.cpu_percent(interval=None)
+            # Query CPU percent (uses a 100ms blocking check on Vercel for actual data)
+            cpu_p = psutil.cpu_percent(interval=0.1)
             
             cpu_freq = 0.0
             try:
@@ -197,26 +197,30 @@ class SystemMonitor:
     def _fetch_top_processes(self):
         """Fetch the top 15 running processes sorted by CPU percentage."""
         temp_processes = []
-        for proc in psutil.process_iter(['pid', 'name', 'username', 'cpu_percent', 'memory_percent']):
-            try:
-                # Handle permissions / zombie processes
-                info = proc.info
-                if info['cpu_percent'] is None:
-                    info['cpu_percent'] = 0.0
-                if info['memory_percent'] is None:
-                    info['memory_percent'] = 0.0
-                
-                # Fetch memory usage in MB
+        try:
+            for proc in psutil.process_iter(['pid', 'name', 'username', 'cpu_percent', 'memory_percent']):
                 try:
-                    mem_info = proc.memory_info()
-                    info['memory_mb'] = round(mem_info.rss / (1024 * 1024), 1)
-                except Exception:
-                    info['memory_mb'] = 0.0
+                    # Handle permissions / zombie processes
+                    info = proc.info
+                    if info['cpu_percent'] is None:
+                        info['cpu_percent'] = 0.0
+                    if info['memory_percent'] is None:
+                        info['memory_percent'] = 0.0
+                    
+                    # Fetch memory usage in MB
+                    try:
+                        mem_info = proc.memory_info()
+                        info['memory_mb'] = round(mem_info.rss / (1024 * 1024), 1)
+                    except Exception:
+                        info['memory_mb'] = 0.0
 
-                temp_processes.append(info)
-            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-                continue
-        
+                    temp_processes.append(info)
+                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                    continue
+        except Exception as e:
+            # Under secure serverless environments (like Vercel AWS Lambda), process listings may be blocked.
+            print(f"Sandbox restricted process listings: {e}")
+            
         # Sort by cpu_percent descending and slice to top 15
         temp_processes.sort(key=lambda p: p['cpu_percent'], reverse=True)
         return temp_processes[:15]
