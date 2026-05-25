@@ -669,3 +669,98 @@ body.light-theme .theme-toggle-btn .moon-icon {
     display: block;
 }
 
+/* ==========================================================================
+   Responsive Mobile & Tablet Media Queries
+   ========================================================================== */
+
+@media (max-width: 768px) {
+    /* Tablet Optimizations */
+    .vitals-grid {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
+    
+    .dashboard-wrapper {
+        padding: 1rem;
+    }
+    
+    .metric-card, .process-card {
+        padding: 1.5rem;
+    }
+    
+    .metric-value {
+        font-size: 3.2rem;
+    }
+}
+
+@media (max-width: 580px) {
+    /* Mobile Phone Optimizations */
+    .dashboard-wrapper {
+        padding: 0.65rem;
+    }
+    
+    .app-header {
+        padding: 0.75rem 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .logo-area h1 {
+        font-size: 1.35rem;
+    }
+    
+    /* Hide the redundant text badge to prevent horizontal overflow */
+    .telemetry-badge {
+        display: none;
+    }
+    
+    .metric-card, .process-card {
+        padding: 1.15rem;
+        border-radius: 16px;
+        gap: 1rem;
+    }
+    
+    .metric-value {
+        font-size: 2.85rem;
+    }
+    
+    .metric-hero {
+        margin-bottom: 0.25rem;
+    }
+    
+    /* Hide username column on mobile to preserve layout integrity */
+    .col-user {
+        display: none;
+    }
+    
+    /* Optimize process listing paddings */
+    .process-table th, .process-table td {
+        padding: 0.65rem 0.65rem;
+        font-size: 0.8rem;
+    }
+    
+    .col-pid {
+        width: 15%;
+    }
+    .col-name {
+        width: 45%;
+    }
+    .col-mem {
+        width: 20%;
+    }
+    .col-cpu {
+        width: 20%;
+    }
+    
+    .percentage-pill {
+        min-width: 48px;
+        padding: 0.15rem 0.35rem;
+        font-size: 0.75rem;
+    }
+    
+    .app-footer {
+        margin-top: 1.5rem;
+        padding: 0.75rem 0;
+    }
+}
+
+
